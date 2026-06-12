@@ -1,10 +1,16 @@
 import { useState, useMemo } from "react";
 
 const ROSTER_TYPES = {
-  A: { label: "Tipe A", desc: "35 hari kerja + 14 hari cuti", sitedays: 35, leavedays: 14 },
-  B: { label: "Tipe B", desc: "49 hari kerja + 14 hari cuti", sitedays: 49, leavedays: 14 },
-  C: { label: "Tipe C", desc: "63 hari kerja + 14 hari cuti", sitedays: 63, leavedays: 14 },
+  W5: { label: "5:2", desc: "35 hari kerja + 14 hari cuti", sitedays: 35, leavedays: 14 },
+  W6: { label: "6:2", desc: "42 hari kerja + 14 hari cuti", sitedays: 42, leavedays: 14 },
+  W7: { label: "7:2", desc: "49 hari kerja + 14 hari cuti", sitedays: 49, leavedays: 14 },
+  W8: { label: "8:2", desc: "56 hari kerja + 14 hari cuti", sitedays: 56, leavedays: 14 },
+  W9: { label: "9:2", desc: "63 hari kerja + 14 hari cuti", sitedays: 63, leavedays: 14 },
+  W10: { label: "10:2", desc: "70 hari kerja + 14 hari cuti", sitedays: 70, leavedays: 14 },
+  CUSTOM: { label: "Custom", desc: "Atur jumlah hari kerja & cuti sendiri", sitedays: 35, leavedays: 14 },
 };
+
+const APP_VERSION = "1.1.2";
 
 const DAY_NAMES = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
 const MONTH_NAMES = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
@@ -27,8 +33,7 @@ function toKey(date) {
   return `${y}-${m}-${d}`;
 }
 
-function buildSchedule(startDate, rosterType, extraLeave = 0, travelOnsite = 0, travelOffsite = 0, months = 24) {
-  const roster = ROSTER_TYPES[rosterType];
+function buildSchedule(startDate, roster, extraLeave = 0, travelOnsite = 0, travelOffsite = 0, months = 24) {
   const endDate = addDays(startDate, months * 31);
   const schedule = {};
   let cursor = new Date(startDate);
@@ -105,7 +110,9 @@ function DayCounter({ label, value, onChange }) {
 
 export default function App() {
   const today = new Date();
-  const [rosterType, setRosterType] = useState("B");
+  const [rosterType, setRosterType] = useState("W7");
+  const [customSitedays, setCustomSitedays] = useState(35);
+  const [customLeavedays, setCustomLeavedays] = useState(14);
   const [startDate, setStartDate] = useState(toKey(today));
   const [extraLeave, setExtraLeave] = useState(0);
   const [travelOnsiteEnabled, setTravelOnsiteEnabled] = useState(false);
@@ -119,9 +126,13 @@ export default function App() {
   const effOnsite = travelOnsiteEnabled ? travelOnsite : 0;
   const effOffsite = travelOffsiteEnabled ? travelOffsite : 0;
 
+  const roster = rosterType === "CUSTOM"
+    ? { label: "Custom", desc: `${customSitedays} hari kerja + ${customLeavedays} hari cuti`, sitedays: Number(customSitedays) || 0, leavedays: Number(customLeavedays) || 0 }
+    : ROSTER_TYPES[rosterType];
+
   const schedule = useMemo(
-    () => buildSchedule(parseLocalDate(startDate), rosterType, Number(extraLeave), effOnsite, effOffsite, 24),
-    [startDate, rosterType, extraLeave, effOnsite, effOffsite]
+    () => buildSchedule(parseLocalDate(startDate), roster, Number(extraLeave), effOnsite, effOffsite, 24),
+    [startDate, roster, extraLeave, effOnsite, effOffsite]
   );
 
   const calendarDays = useMemo(() => {
@@ -152,7 +163,6 @@ export default function App() {
     return counts;
   }, [calendarDays, schedule]);
 
-  const roster = ROSTER_TYPES[rosterType];
   const cycleTotal = effOnsite + roster.sitedays + effOffsite + roster.leavedays + Number(extraLeave);
   const startLabel = effOnsite > 0 ? "Tanggal Berangkat" : "Tanggal Mulai Kerja";
   const startHint = effOnsite > 0
@@ -164,31 +174,49 @@ export default function App() {
       <div style={{ maxWidth: 740, margin: "0 auto" }}>
 
         <div style={{ marginBottom: 24 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-            <span style={{ fontSize: 22 }}>⛏️</span>
-            <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, letterSpacing: "-0.5px", color: "#f1f5f9" }}>Kalender Roster Tambang</h1>
-          </div>
-          <p style={{ margin: 0, fontSize: 13, color: "#475569" }}>Visualisasi jadwal kerja, off day & cuti berdasarkan pola roster</p>
+          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, letterSpacing: "-0.5px", color: "#f1f5f9" }}>Kalender Roster</h1>
+          <p style={{ margin: "4px 0 0", fontSize: 13, color: "#475569" }}>Visualisasi jadwal kerja, off day & cuti berdasarkan pola roster</p>
         </div>
 
         {/* Config */}
         <div style={{ background: "#111827", border: "1px solid #1e293b", borderRadius: 12, padding: "20px", marginBottom: 16 }}>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 20, marginBottom: 16 }}>
 
-            <div style={{ flex: "1 1 180px" }}>
+            <div style={{ flex: "1 1 100%" }}>
               <label style={labelStyle}>Tipe Roster</label>
-              <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+              <div style={{ display: "flex", gap: 8, marginBottom: 8, flexWrap: "wrap" }}>
                 {Object.keys(ROSTER_TYPES).map(k => (
                   <button key={k} onClick={() => setRosterType(k)} style={{
-                    padding: "7px 18px", borderRadius: 7,
+                    padding: "7px 16px", borderRadius: 7,
                     border: rosterType === k ? "2px solid #3b82f6" : "2px solid #1e293b",
                     background: rosterType === k ? "#1e3a5f" : "#0f172a",
                     color: rosterType === k ? "#93c5fd" : "#475569",
-                    fontWeight: 700, fontSize: 14, cursor: "pointer",
-                  }}>{k}</button>
+                    fontWeight: 700, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap",
+                  }}>{ROSTER_TYPES[k].label}</button>
                 ))}
               </div>
-              <p style={{ margin: 0, fontSize: 12, color: "#475569", lineHeight: 1.6 }}>{roster.desc}</p>
+              {rosterType === "CUSTOM" ? (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 16, marginTop: 6 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ fontSize: 12, color: "#64748b" }}>Hari Kerja:</span>
+                    <input
+                      type="number" min="1" max="365" value={customSitedays}
+                      onChange={e => setCustomSitedays(Math.max(1, Math.min(365, Number(e.target.value))))}
+                      style={{ ...inputStyle, width: 64, textAlign: "center", padding: "6px 8px" }}
+                    />
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ fontSize: 12, color: "#64748b" }}>Hari Cuti:</span>
+                    <input
+                      type="number" min="0" max="60" value={customLeavedays}
+                      onChange={e => setCustomLeavedays(Math.max(0, Math.min(60, Number(e.target.value))))}
+                      style={{ ...inputStyle, width: 64, textAlign: "center", padding: "6px 8px" }}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <p style={{ margin: 0, fontSize: 12, color: "#475569", lineHeight: 1.6 }}>{roster.desc}</p>
+              )}
             </div>
 
             <div style={{ flex: "1 1 160px" }}>
@@ -330,6 +358,12 @@ export default function App() {
               <span style={{ fontSize: 11, color: "#475569" }}>{label}</span>
             </div>
           ))}
+        </div>
+
+        {/* Footer */}
+        <div style={{ textAlign: "center", padding: "16px 0 8px", borderTop: "1px solid #1e293b" }}>
+          <p style={{ margin: 0, fontSize: 11, color: "#334155" }}>v{APP_VERSION}</p>
+          <p style={{ margin: "4px 0 0", fontSize: 12, color: "#475569" }}>Made with ❤️ by Moses</p>
         </div>
 
       </div>
