@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 
-const APP_VERSION = "1.1.8";
+const APP_VERSION = "1.1.9";
 const APP_NAME = "PRISMA";
 const APP_DESC = "Proyeksi Sisa Masa Cuti";
 
@@ -230,19 +230,28 @@ export default function App() {
   }, [customOn, customSite, customLeave, safeKey, isStaff, rosterOptions]);
 
   // Hitung kapan cuti normal pertama mulai
-  var normalCutiStart = useMemo(function() {
+  // Tanggal target penyesuaian:
+  // - Staff (ada travel offsite aktif): target = hari pertama travel offsite (site selesai, sebelum offsite)
+  // - Nonstaff / staff tanpa travel offsite: target = hari pertama cuti langsung
+  var normalTargetStart = useMemo(function() {
     var cur = parseLocal(startDate);
     for (var t = 0; t < effOn; t++) cur = addDays(cur, 1);
     for (var s = 0; s < baseRoster.sitedays; s++) cur = addDays(cur, 1);
-    for (var o = 0; o < effOff; o++) cur = addDays(cur, 1);
+    // Jika staff dan travel offsite aktif, target = tanggal ini (awal travel offsite)
+    // Jika tidak ada travel offsite, target = tanggal ini juga (awal cuti langsung)
     return cur;
-  }, [startDate, baseRoster.sitedays, effOn, effOff]);
+  }, [startDate, baseRoster.sitedays, effOn]);
+
+  // Untuk tampilan "jadwal normal", tetap tampilkan tanggal cuti asli (setelah offsite) agar user paham konteksnya
+  var normalCutiStart = useMemo(function() {
+    return addDays(normalTargetStart, effOff);
+  }, [normalTargetStart, effOff]);
 
   // Batas tanggal picker:
   // Maju  (<-) = cuti lebih AWAL  = tanggal SEBELUM normal
   // Mundur(->) = cuti lebih LAMBAT = tanggal SETELAH normal
-  var minDatePeny = arah === "mundur" ? toKey(addDays(normalCutiStart, 1))  : undefined;
-  var maxDatePeny = arah === "maju"   ? toKey(addDays(normalCutiStart, -1)) : undefined;
+  var minDatePeny = arah === "mundur" ? toKey(addDays(normalTargetStart, 1))  : undefined;
+  var maxDatePeny = arah === "maju"   ? toKey(addDays(normalTargetStart, -1)) : undefined;
 
   var penyCalc = useMemo(function() {
     var defaultResult = {
@@ -253,13 +262,13 @@ export default function App() {
     };
     if (!penyEn || !tglPeny) return defaultResult;
     var tglBaru    = parseLocal(tglPeny);
-    var selisihRaw = diffDays(normalCutiStart, tglBaru); // + = mundur (lambat), - = maju (cepat)
+    var selisihRaw = diffDays(normalTargetStart, tglBaru); // + = mundur (lambat), - = maju (cepat)
     var arahAktual = selisihRaw >= 0 ? "mundur" : "maju";
     var effectiveSite  = Math.max(1, baseRoster.sitedays + selisihRaw);
     var adjLeaveBase   = pkbHitung(baseRoster.leavedays, baseRoster.sitedays, effectiveSite);
     var adjLeave       = adjLeaveBase + Number(extraLeave);
     return { selisih:Math.abs(selisihRaw), arahAktual, effectiveSite, adjLeaveBase, adjLeave };
-  }, [penyEn, tglPeny, normalCutiStart, baseRoster, extraLeave]);
+  }, [penyEn, tglPeny, normalTargetStart, baseRoster, extraLeave]);
 
   // Siklus pertama pakai hasil penyesuaian, selanjutnya kembali ke roster normal
   var firstSitedays  = penyEn && tglPeny ? penyCalc.effectiveSite                         : baseRoster.sitedays;
@@ -498,16 +507,17 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* Tanggal cuti baru */}
+                  {/* Tanggal target baru (offsite jika staff+travel aktif, else langsung cuti) */}
                   <div style={{flex:"1 1 180px"}}>
-                    <label style={lbl(muted)}>Tanggal Mulai Cuti Baru</label>
+                    <label style={lbl(muted)}>{effOff>0 ? "Tanggal Mulai Offsite Baru" : "Tanggal Mulai Cuti Baru"}</label>
                     <input type="date" value={tglPeny}
                       min={minDatePeny} max={maxDatePeny}
                       onChange={function(e){setTglPeny(e.target.value);}}
                       style={Object.assign({},inp,{width:"100%", borderColor:tglPeny?"#6366f1":border})}/>
                     <p style={{margin:"4px 0 0", fontSize:11, color:faint}}>
                       {"Jadwal normal: "}
-                      <strong style={{color:dark?"#a5b4fc":"#4338ca"}}>{toKey(normalCutiStart)}</strong>
+                      <strong style={{color:dark?"#a5b4fc":"#4338ca"}}>{toKey(normalTargetStart)}</strong>
+                      {effOff>0 && <span>{" (cuti mulai "}{toKey(normalCutiStart)}{")"}</span>}
                       {" · "}{arah==="maju" ? "pilih sebelumnya" : "pilih sesudahnya"}
                     </p>
                   </div>
