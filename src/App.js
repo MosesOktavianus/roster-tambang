@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 
-const APP_VERSION = "1.1.6";
+const APP_VERSION = "1.1.7";
 const APP_NAME = "PRISMA";
 const APP_DESC = "Proyeksi Sisa Masa Cuti";
 
@@ -326,7 +326,7 @@ export default function App() {
 
   return (
     <div style={{minHeight:"100vh", background:bg, color:text, fontFamily:"'Inter','Segoe UI',sans-serif", padding:"24px 16px", transition:"all 0.2s"}}>
-      <div style={{maxWidth:740, margin:"0 auto"}}>
+      <div style={{maxWidth:1280, margin:"0 auto"}}>
 
         {/* Header */}
         <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:24}}>
@@ -340,7 +340,11 @@ export default function App() {
           </button>
         </div>
 
-        {/* Config Card */}
+        {/* 2-col layout: left=config, right=calendar */}
+        <div className="prisma-layout">
+
+        {/* LEFT COLUMN — Config */}
+        <div className="prisma-left">
         <div style={{background:card, border:"1px solid "+border, borderRadius:12, padding:20, marginBottom:16}}>
 
           {/* Level Karyawan */}
@@ -547,6 +551,10 @@ export default function App() {
             )}
           </div>
         </div>
+        </div>{/* end prisma-left */}
+
+        {/* RIGHT COLUMN — Calendar + Stats + Legend */}
+        <div className="prisma-right">
 
         {/* Calendar */}
         <div style={{background:card, border:"1px solid "+border, borderRadius:12, overflow:"hidden", marginBottom:16}}>
@@ -664,8 +672,11 @@ export default function App() {
           </div>
         </div>
 
+        </div>{/* end prisma-right */}
+        </div>{/* end prisma-layout */}
+
         {/* Footer */}
-        <div style={{textAlign:"center", padding:"16px 0 8px", borderTop:"1px solid "+border}}>
+        <div style={{textAlign:"center", padding:"16px 0 8px", borderTop:"1px solid "+border, marginTop:8}}>
           <p style={{margin:0, fontSize:11, color:faint}}>{"v"}{APP_VERSION}</p>
           <p style={{margin:"4px 0 0", fontSize:12, color:muted}}>{"Made with ❤️ by Moses"}</p>
         </div>
