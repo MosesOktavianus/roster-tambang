@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 
-const APP_VERSION = "1.1.9";
+const APP_VERSION = "1.2.0";
 const APP_NAME = "PRISMA";
 const APP_DESC = "Proyeksi Sisa Masa Cuti";
 
@@ -584,12 +584,12 @@ export default function App() {
           </div>
           <div style={{display:"grid", gridTemplateColumns:"repeat(7,1fr)", borderBottom:"1px solid "+border}}>
             {DAY_NAMES.map(function(d) {
-              return <div key={d} style={{textAlign:"center", padding:"7px 2px", fontSize:10, fontWeight:700, color:faint, textTransform:"uppercase", letterSpacing:"0.06em"}}>{d}</div>;
+              return <div key={d} style={{textAlign:"center", padding:"10px 2px", fontSize:12, fontWeight:700, color:faint, textTransform:"uppercase", letterSpacing:"0.06em"}}>{d}</div>;
             })}
           </div>
           <div style={{display:"grid", gridTemplateColumns:"repeat(7,1fr)"}}>
             {calDays.map(function(day, i) {
-              if (!day) return <div key={"b"+i} style={{minHeight:72, borderBottom:"1px solid "+(dark?"#0d1420":border), borderRight:"1px solid "+(dark?"#0d1420":border)}}/>;
+              if (!day) return <div key={"b"+i} style={{minHeight:96, borderBottom:"1px solid "+(dark?"#0d1420":border), borderRight:"1px solid "+(dark?"#0d1420":border)}}/>;
               var k         = toKey(day);
               var info      = schedule[k];
               var col       = info ? CM[info.type] : null;
@@ -597,45 +597,56 @@ export default function App() {
               var isToday   = toKey(today)===k;
               var isHov     = hovered===k;
               var isCutiTgt = penyEn && tglPeny && k===tglPeny;
+              var rowIndex  = Math.floor(i / 7);
+              var totalRows = Math.ceil(calDays.length / 7);
+              var isBottomRow = rowIndex >= totalRows - 2; // 2 baris terakhir → tooltip ke atas
               return (
                 <div key={k}
                   onMouseEnter={function(){setHovered(k);}}
                   onMouseLeave={function(){setHovered(null);}}
                   style={{
-                    minHeight:72, padding:"5px 4px",
+                    minHeight:96, padding:"8px 7px",
                     borderBottom:"1px solid "+(dark?"#0d1420":border),
                     borderRight:"1px solid "+(dark?"#0d1420":border),
                     background:isHov&&col?col.bg+"ee":col?col.bg:(holiday?(dark?"#1a0a0a":"#fff5f5"):card),
                     position:"relative", cursor:(info||holiday)?"pointer":"default", transition:"background 0.1s",
                     outline:isCutiTgt?"2px solid #6366f1":"none", outlineOffset:"-2px",
                   }}>
-                  <div style={{marginBottom:2}}>
+                  <div style={{marginBottom:5}}>
                     {isToday
-                      ? <span style={{background:"#3b82f6", color:"#fff", borderRadius:"50%", width:20, height:20, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:10, fontWeight:800}}>{day.getDate()}</span>
-                      : <span style={{fontSize:12, fontWeight:holiday?700:500, color:holiday?(dark?"#fca5a5":"#dc2626"):(col?col.text:(dark?"#1e293b":"#cbd5e1"))}}>{day.getDate()}</span>
+                      ? <span style={{background:"#3b82f6", color:"#fff", borderRadius:"50%", width:28, height:28, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:15, fontWeight:800}}>{day.getDate()}</span>
+                      : <span style={{fontSize:17, fontWeight:holiday?700:600, color:holiday?(dark?"#fca5a5":"#dc2626"):(col?col.text:(dark?"#334155":"#cbd5e1"))}}>{day.getDate()}</span>
                     }
                   </div>
                   {col && (
-                    <div style={{display:"flex", alignItems:"flex-start", gap:3, marginBottom:1}}>
-                      <span style={{width:5, height:5, borderRadius:"50%", marginTop:3, background:col.dot, flexShrink:0}}/>
-                      <span style={{fontSize:9, color:col.text, lineHeight:1.3}}>
+                    <div style={{display:"flex", alignItems:"flex-start", gap:4, marginBottom:2}}>
+                      <span style={{width:6, height:6, borderRadius:"50%", marginTop:4, background:col.dot, flexShrink:0}}/>
+                      <span style={{fontSize:11, color:col.text, lineHeight:1.3, fontWeight:500}}>
                         {info.type==="work"?"Kerja":info.type==="offday"?"Off":info.type==="travel_out"?"Onsite":info.type==="travel_back"?"Offsite":"Cuti"}
                       </span>
                     </div>
                   )}
                   {holiday && (
-                    <div style={{display:"flex", alignItems:"flex-start", gap:2}}>
-                      <span style={{fontSize:8, lineHeight:1}}>🔴</span>
-                      <span style={{fontSize:8, color:dark?"#fca5a5":"#dc2626", lineHeight:1.3, wordBreak:"break-word"}}>{holiday.length>14?holiday.slice(0,13)+"…":holiday}</span>
+                    <div style={{display:"flex", alignItems:"flex-start", gap:3}}>
+                      <span style={{fontSize:9, lineHeight:1.2}}>🔴</span>
+                      <span style={{fontSize:9, color:dark?"#fca5a5":"#dc2626", lineHeight:1.3, wordBreak:"break-word"}}>{holiday.length>16?holiday.slice(0,15)+"…":holiday}</span>
                     </div>
                   )}
                   {isCutiTgt && (
-                    <div style={{position:"absolute", top:2, right:3}}>
-                      <span style={{fontSize:8, background:"#6366f1", color:"#fff", borderRadius:3, padding:"1px 3px", fontWeight:700}}>Cuti Baru</span>
+                    <div style={{position:"absolute", top:4, right:4}}>
+                      <span style={{fontSize:9, background:"#6366f1", color:"#fff", borderRadius:4, padding:"2px 5px", fontWeight:700}}>Cuti Baru</span>
                     </div>
                   )}
                   {isHov && (info||holiday) && (
-                    <div style={{position:"absolute", top:"calc(100% + 4px)", left:"50%", transform:"translateX(-50%)", background:dark?"#0f172a":"#fff", border:"1px solid "+(dark?"#334155":border), borderRadius:6, padding:"6px 10px", zIndex:20, pointerEvents:"none", boxShadow:"0 4px 16px rgba(0,0,0,0.25)", minWidth:140}}>
+                    <div style={{
+                      position:"absolute",
+                      top: isBottomRow ? "auto" : "calc(100% + 4px)",
+                      bottom: isBottomRow ? "calc(100% + 4px)" : "auto",
+                      left:"50%", transform:"translateX(-50%)",
+                      background:dark?"#0f172a":"#fff", border:"1px solid "+(dark?"#334155":border),
+                      borderRadius:6, padding:"6px 10px", zIndex:30, pointerEvents:"none",
+                      boxShadow:"0 4px 16px rgba(0,0,0,0.25)", minWidth:140, whiteSpace:"nowrap",
+                    }}>
                       {info && <p style={{margin:0, fontSize:11, color:col.text, fontWeight:600}}>{info.label}</p>}
                       {holiday && <p style={{margin:info?"2px 0 0":0, fontSize:11, color:dark?"#fca5a5":"#dc2626"}}>🔴 {holiday}</p>}
                     </div>
