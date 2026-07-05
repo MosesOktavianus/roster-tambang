@@ -4,16 +4,42 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
     <meta name="theme-color" content="#080d18" />
-    <meta name="description" content="Aplikasi kalender jadwal roster tambang" />
+    <meta name="description" content="PRISMA - Proyeksi Sisa Masa Cuti" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Roster Tambang" />
+    <meta name="apple-mobile-web-app-title" content="PRISMA" />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/icon-192.png" />
-    <title>Kalender Roster Tambang</title>
+    <title>PRISMA - Proyeksi Sisa Masa Cuti</title>
     <style>
       * { box-sizing: border-box; }
       body { margin: 0; padding: 0; background: #080d18; }
+
+      .prisma-layout { display: block; }
+      .prisma-left, .prisma-right { width: 100%; }
+
+      /* Desktop/tablet lebar: 2 kolom berdampingan */
+      @media screen and (min-width: 860px) {
+        .prisma-layout {
+          display: flex !important;
+          flex-direction: row !important;
+          gap: 20px;
+          align-items: flex-start;
+        }
+        .prisma-left {
+          flex: 0 0 400px !important;
+          width: 400px !important;
+          min-width: 340px;
+          max-width: 440px;
+          position: sticky;
+          top: 24px;
+        }
+        .prisma-right {
+          flex: 1 1 0% !important;
+          width: auto !important;
+          min-width: 0;
+        }
+      }
     </style>
   </head>
   <body>

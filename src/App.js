@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 
-const APP_VERSION = "1.1.7";
+const APP_VERSION = "1.1.8";
 const APP_NAME = "PRISMA";
 const APP_DESC = "Proyeksi Sisa Masa Cuti";
 
@@ -326,6 +326,15 @@ export default function App() {
 
   return (
     <div style={{minHeight:"100vh", background:bg, color:text, fontFamily:"'Inter','Segoe UI',sans-serif", padding:"24px 16px", transition:"all 0.2s"}}>
+      <style>{"\
+        .prisma-layout{display:block;}\
+        .prisma-left,.prisma-right{width:100%;}\
+        @media screen and (min-width:860px){\
+          .prisma-layout{display:flex !important;flex-direction:row !important;gap:20px;align-items:flex-start;}\
+          .prisma-left{flex:0 0 400px !important;width:400px !important;min-width:340px;max-width:440px;position:sticky;top:24px;}\
+          .prisma-right{flex:1 1 0% !important;width:auto !important;min-width:0;}\
+        }\
+      "}</style>
       <div style={{maxWidth:1280, margin:"0 auto"}}>
 
         {/* Header */}
